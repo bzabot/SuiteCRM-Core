@@ -1,0 +1,13 @@
+.board {
+  overflow-y: auto;
+
+  .board-column {
+    width: 250px;
+    min-width: 250px;
+  }
+
+  .board-title {
+    font-weight: 700;
+    margin-left: 0.75rem;
+  }
+}

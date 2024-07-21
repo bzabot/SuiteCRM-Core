@@ -24,27 +24,36 @@
  * the words "Supercharged by SuiteCRM".
  */
 
-import { NgModule } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { FieldModule } from "../../../../fields/field.module";
-import { WidgetPanelModule } from "../../../../components/widget-panel/widget-panel.module";
-import { LabelModule } from "../../../../components/label/label.module";
-import { RecordThreadSidebarWidgetComponent } from "./record-thread-sidebar-widget.component";
-import { RecordThreadModule } from "../../../record-thread/components/record-thread/record-thread.module";
-import { RecordThreadItemModule } from "../../../record-thread/components/record-thread-item/record-thread-item.module";
-import { BoardModule } from "../../../board/components/board/board.module";
+import { Component, OnInit } from "@angular/core";
+import { AppStateStore } from "../../../../store/app-state/app-state.store";
+import { Observable, Subscription } from "rxjs";
 
-@NgModule({
-  declarations: [RecordThreadSidebarWidgetComponent],
-  exports: [RecordThreadSidebarWidgetComponent],
-  imports: [
-    CommonModule,
-    FieldModule,
-    WidgetPanelModule,
-    LabelModule,
-    RecordThreadModule,
-    RecordThreadItemModule,
-    BoardModule,
-  ],
+import { ActivatedRoute, Params } from "@angular/router";
+import { ViewMode } from "common";
+
+@Component({
+  selector: "scrm-boards",
+  templateUrl: "./boards.component.html",
 })
-export class RecordThreadSidebarWidgetModule {}
+export class BoardsComponent implements OnInit {
+  showStatusBar = false;
+
+  constructor(
+    protected appState: AppStateStore,
+
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit(): void {
+    let mode = "detail" as ViewMode;
+    const data = (this.route.snapshot && this.route.snapshot.data) || {};
+
+    if (data.mode) {
+      mode = data.mode;
+    }
+
+    const params =
+      (this.route.snapshot && this.route.snapshot.queryParams) ||
+      ({} as Params);
+  }
+}

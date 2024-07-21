@@ -29,14 +29,14 @@ import { CommonModule } from "@angular/common";
 import { FieldModule } from "../../../../fields/field.module";
 import { WidgetPanelModule } from "../../../../components/widget-panel/widget-panel.module";
 import { LabelModule } from "../../../../components/label/label.module";
-import { RecordThreadSidebarWidgetComponent } from "./record-thread-sidebar-widget.component";
+import { BoardSidebarWidgetComponent } from "./board-sidebar-widget.component";
 import { RecordThreadModule } from "../../../record-thread/components/record-thread/record-thread.module";
 import { RecordThreadItemModule } from "../../../record-thread/components/record-thread-item/record-thread-item.module";
 import { BoardModule } from "../../../board/components/board/board.module";
 
 @NgModule({
-  declarations: [RecordThreadSidebarWidgetComponent],
-  exports: [RecordThreadSidebarWidgetComponent],
+  declarations: [BoardSidebarWidgetComponent],
+  exports: [BoardSidebarWidgetComponent],
   imports: [
     CommonModule,
     FieldModule,
@@ -47,4 +47,4 @@ import { BoardModule } from "../../../board/components/board/board.module";
     BoardModule,
   ],
 })
-export class RecordThreadSidebarWidgetModule {}
+export class BoardSidebarWidgetModule {}

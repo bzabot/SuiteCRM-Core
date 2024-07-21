@@ -26,25 +26,13 @@
 
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FieldModule } from "../../../../fields/field.module";
-import { WidgetPanelModule } from "../../../../components/widget-panel/widget-panel.module";
-import { LabelModule } from "../../../../components/label/label.module";
-import { RecordThreadSidebarWidgetComponent } from "./record-thread-sidebar-widget.component";
-import { RecordThreadModule } from "../../../record-thread/components/record-thread/record-thread.module";
-import { RecordThreadItemModule } from "../../../record-thread/components/record-thread-item/record-thread-item.module";
-import { BoardModule } from "../../../board/components/board/board.module";
+import { BoardsComponent } from "./boards.component";
+import { BoardModule } from "../../../../containers/board/components/board/board.module";
+import { SidebarComponent } from "../../../../components/sidebar/sidebar.component";
 
 @NgModule({
-  declarations: [RecordThreadSidebarWidgetComponent],
-  exports: [RecordThreadSidebarWidgetComponent],
-  imports: [
-    CommonModule,
-    FieldModule,
-    WidgetPanelModule,
-    LabelModule,
-    RecordThreadModule,
-    RecordThreadItemModule,
-    BoardModule,
-  ],
+  declarations: [BoardsComponent],
+  exports: [BoardsComponent],
+  imports: [CommonModule, BoardModule, SidebarComponent],
 })
-export class RecordThreadSidebarWidgetModule {}
+export class BoardsModule {}

@@ -24,23 +24,27 @@
  * the words "Supercharged by SuiteCRM".
  */
 
-import {HistorySidebarWidgetComponent} from '../history-sidebar-widget/history-sidebar-widget.component';
-import {StatisticsSidebarWidgetModule} from '../statistics-sidebar-widget/statistics-sidebar-widget.module';
-import {HistorySidebarWidgetModule} from '../history-sidebar-widget/history-sidebar-widget.module';
-import {StatisticsSidebarWidgetComponent} from '../statistics-sidebar-widget/statistics-sidebar-widget.component';
-import {ChartSidebarWidgetModule} from '../chart-sidebar-widget/chart-sidebar-widget.module';
-import {ChartSidebarWidgetComponent} from '../chart-sidebar-widget/chart-sidebar-widget.component';
-import {RecordThreadSidebarWidgetComponent} from '../record-thread-sidebar-widget/record-thread-sidebar-widget.component';
+import { HistorySidebarWidgetComponent } from "../history-sidebar-widget/history-sidebar-widget.component";
+import { StatisticsSidebarWidgetModule } from "../statistics-sidebar-widget/statistics-sidebar-widget.module";
+import { HistorySidebarWidgetModule } from "../history-sidebar-widget/history-sidebar-widget.module";
+import { StatisticsSidebarWidgetComponent } from "../statistics-sidebar-widget/statistics-sidebar-widget.component";
+import { ChartSidebarWidgetModule } from "../chart-sidebar-widget/chart-sidebar-widget.module";
+import { ChartSidebarWidgetComponent } from "../chart-sidebar-widget/chart-sidebar-widget.component";
+import { RecordThreadSidebarWidgetComponent } from "../record-thread-sidebar-widget/record-thread-sidebar-widget.component";
+import { BoardSidebarWidgetComponent } from "../board-sidebar-widget/board-sidebar-widget.component";
+import { BoardSidebarWidgetModule } from "../board-sidebar-widget/board-sidebar-widget.module";
 
 export const sidebarWidgetModules = [
-    HistorySidebarWidgetModule,
-    ChartSidebarWidgetModule,
-    StatisticsSidebarWidgetModule
+  HistorySidebarWidgetModule,
+  ChartSidebarWidgetModule,
+  StatisticsSidebarWidgetModule,
+  BoardSidebarWidgetModule,
 ];
 
 export const componentTypeMap = {
-    'history-timeline': HistorySidebarWidgetComponent,
-    chart: ChartSidebarWidgetComponent,
-    statistics: StatisticsSidebarWidgetComponent,
-    'record-thread': RecordThreadSidebarWidgetComponent
+  "history-timeline": HistorySidebarWidgetComponent,
+  chart: ChartSidebarWidgetComponent,
+  statistics: StatisticsSidebarWidgetComponent,
+  "record-thread": RecordThreadSidebarWidgetComponent,
+  board: BoardSidebarWidgetComponent,
 };

@@ -24,7 +24,14 @@
  * the words "Supercharged by SuiteCRM".
  */
 
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import {
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  WritableSignal,
+} from "@angular/core";
 import {
   AttributeMap,
   deepClone,
@@ -47,6 +54,36 @@ import {
 } from "../../../record-thread/components/record-thread/record-thread.model";
 import { RecordThreadItemMetadata } from "../../../record-thread/store/record-thread/record-thread-item.store.model";
 import { SystemConfigStore } from "../../../../store/system-config/system-config.store";
+import { ModuleNameMapper } from "../../../../services/navigation/module-name-mapper/module-name-mapper.service";
+import { end } from "@popperjs/core";
+
+export interface BoardWidgetConfig {
+  module: string;
+  class?: string;
+  maxListHeight?: number;
+  direction?: "asc" | "desc";
+  item: {
+    dynamicClass?: string[];
+    itemClass?: string;
+    collapsible?: boolean;
+    collapseLimit?: number;
+    layout?: ThreadItemMetadataConfig;
+    fields?: FieldDefinitionMap;
+  };
+  create: {
+    presetFields?: {
+      parentValues?: StringMap;
+      static?: AttributeMap;
+    };
+    layout?: ThreadItemMetadataConfig;
+  };
+  filters?: {
+    parentFilters?: StringMap;
+    static?: SearchCriteriaFilter;
+    orderBy?: string;
+    sortOrder?: string;
+  };
+}
 
 @Component({
   selector: "scrm-board-sidebar-widget",
@@ -58,67 +95,103 @@ export class BoardSidebarWidgetComponent
   implements OnInit, OnDestroy
 {
   panelMode: "collapsible" | "closable" | "none" = "none";
-  options: {
-    module: string;
-    class?: string;
-    maxListHeight?: number;
-    direction?: "asc" | "desc";
-    item: {
-      dynamicClass?: string[];
-      itemClass?: string;
-      collapsible?: boolean;
-      collapseLimit?: number;
-      layout?: ThreadItemMetadataConfig;
-      fields?: FieldDefinitionMap;
-    };
-    create: {
-      presetFields?: {
-        parentValues?: StringMap;
-        static?: AttributeMap;
-      };
-      layout?: ThreadItemMetadataConfig;
-    };
-    filters?: {
-      parentFilters?: StringMap;
-      static?: SearchCriteriaFilter;
-      orderBy?: string;
-      sortOrder?: string;
-    };
-  };
+
+  columns: string[] = [];
+  options: WritableSignal<BoardWidgetConfig> = signal(null);
   boardConfig: RecordThreadConfig;
 
   filters$: Observable<SearchCriteria>;
   presetFields$: Observable<AttributeMap>;
   protected subs: Subscription[] = [];
-
+  protected moduleNameMapper: ModuleNameMapper;
+  moduleType: string;
+  columnField: string;
+  enumOptions: any;
   constructor(
     protected language: LanguageStore,
     protected sytemConfig: SystemConfigStore
   ) {
     super();
+    this.moduleNameMapper = inject(ModuleNameMapper);
   }
 
   ngOnInit(): void {
-    const options = this.config.options || {};
-    this.options = options.recordThread || null;
+    // this.columns = [
+    //   "Not Started",
+    //   "In Progress",
+    //   "Completed",
+    //   "Pending Input",
+    //   "Deferred",
+    // ];
+
+    this.options.set(this.config.options.board);
+    // this.options = this.config.options.board;
 
     if (!this.options) {
       return;
     }
 
-    this.initPanelMode();
-    this.initFilters$();
-    this.initPresetFields$();
+    const columnField = this?.context?.record?.attributes.sections_field;
+    const moduleType = this?.context?.record?.attributes.module_type;
+
+    if (columnField) {
+      this.columnField = columnField.split("_").slice(1).join("_");
+
+      // Get section names
+      const doms = {
+        sales_stage: "sales_stage_dom",
+        status: "task_status_dom",
+      };
+      this.enumOptions = doms[this.columnField];
+      this.columns = Object.keys(
+        this.language.getAppListString(this.enumOptions)
+      );
+    }
+
+    if (moduleType) {
+      // Get module type
+      this.moduleType = moduleType;
+      this.options.update((options) => {
+        return {
+          ...options,
+          module: this.moduleNameMapper.toFrontend(this.moduleType),
+        };
+      });
+    }
 
     if (this.context$ && this.context$.subscribe()) {
       this.subs.push(
         this.context$.subscribe((context: ViewContext) => {
           this.context = context;
+
+          const columnField = this?.context?.record?.attributes.sections_field;
+          const moduleType = this?.context?.record?.attributes.module_type;
+          if (columnField) {
+            this.columnField = columnField.split("_").slice(1).join("_");
+            // Get section names
+            const doms = {
+              sales_stage: "sales_stage_dom",
+              status: "task_status_dom",
+            };
+            this.enumOptions = doms[this.columnField];
+            this.columns = Object.keys(
+              this.language.getAppListString(this.enumOptions)
+            );
+          }
+
+          if (moduleType) {
+            // Get module type
+            this.moduleType = moduleType;
+            this.options.update((options) => {
+              return {
+                ...options,
+                module: this.moduleNameMapper.toFrontend(this.moduleType),
+              };
+            });
+          }
         })
       );
     }
-
-    this.boardConfig = this.getConfig();
   }
 
   ngOnDestroy(): void {
@@ -126,218 +199,13 @@ export class BoardSidebarWidgetComponent
   }
 
   getHeaderLabel(): string {
-    return this.getLabel(this.config.labelKey) || "";
+    return this.getLabel(this?.config?.labelKey ?? "") || "";
   }
 
   getLabel(key: string): string {
-    const context = this.context || ({} as ViewContext);
-    const module = context.module || "";
+    const context = this?.context || ({} as ViewContext);
+    const module = context?.module || "";
 
     return this.language.getFieldLabel(key, module);
-  }
-
-  getConfig(): RecordThreadConfig {
-    const config = {
-      filters$: this.filters$,
-      presetFields$: this.presetFields$,
-      module: this.options.module,
-      klass: this.options.class || "",
-      maxListHeight: this.options.maxListHeight ?? 350,
-      direction: this.options.direction || "asc",
-      create: !!this.options.create,
-      itemConfig: {
-        collapsible: this.options.item.collapsible || false,
-        collapseLimit: this.options.item.collapseLimit || null,
-        klass: this.options.item.itemClass || "",
-        dynamicClass: this.options.item.dynamicClass || [],
-        metadata: {} as RecordThreadItemMetadata,
-      },
-      createConfig: {
-        collapsible: false,
-        metadata: {} as RecordThreadItemMetadata,
-      },
-    } as RecordThreadConfig;
-
-    this.setupItemMetadata(
-      config.itemConfig.metadata,
-      this.options.item.layout
-    );
-    this.setupItemMetadata(
-      config.createConfig.metadata,
-      this.options.create.layout
-    );
-
-    return config;
-  }
-
-  protected setupItemMetadata(
-    metadata: RecordThreadItemMetadata,
-    config: ThreadItemMetadataConfig
-  ) {
-    if (config && config.header) {
-      metadata.headerLayout = deepClone(config.header);
-    }
-
-    if (config && config.body) {
-      metadata.bodyLayout = deepClone(config.body);
-    }
-
-    if (config && config.actions) {
-      metadata.actions = deepClone(config.actions);
-    }
-
-    if (config && config.fields) {
-      metadata.fields = deepClone(config.fields);
-    }
-
-    if ((config?.collapseActions ?? null) !== null) {
-      metadata.collapseActions = config?.collapseActions;
-    }
-  }
-
-  protected initPanelMode(): void {
-    const ui = this.sytemConfig.getConfigValue("ui");
-    const systemDefault = ui?.widget?.allowCollapse ?? null;
-    const allowCollapse = this?.config?.allowCollapse ?? null;
-
-    let mode: "collapsible" | "closable" | "none" = "none";
-
-    if (systemDefault !== null) {
-      if (isTrue(systemDefault)) {
-        mode = "collapsible";
-      } else if (isFalse(systemDefault)) {
-        mode = "none";
-      }
-    }
-
-    if (allowCollapse !== null) {
-      if (isTrue(allowCollapse)) {
-        mode = "collapsible";
-      } else if (isFalse(allowCollapse)) {
-        mode = "none";
-      }
-    }
-
-    this.panelMode = mode;
-  }
-
-  protected initFilters$() {
-    if (!this.options || !this.options.filters || !this.context$) {
-      return;
-    }
-
-    const parentFilters =
-      this.options.filters.parentFilters || ({} as StringMap);
-
-    let context$ = of({}).pipe(shareReplay());
-
-    if (Object.keys(parentFilters).length > 0) {
-      context$ = this.context$.pipe(
-        filter((context) => {
-          const record = (context && context.record) || ({} as Record);
-          return !!(record.attributes && Object.keys(record.attributes).length);
-        })
-      );
-    }
-
-    this.filters$ = context$.pipe(
-      map((context) => {
-        const filters = {
-          filters: {} as SearchCriteriaFilter,
-        } as SearchCriteria;
-
-        this.initParentFilters(context, filters);
-
-        const staticFilters =
-          this.options.filters.static || ({} as SearchCriteriaFilter);
-
-        filters.filters = {
-          ...filters.filters,
-          ...staticFilters,
-        };
-
-        if (this.options.filters.orderBy) {
-          filters.orderBy = this.options.filters.orderBy;
-        }
-
-        if (this.options.filters.sortOrder) {
-          filters.sortOrder = this.options.filters.sortOrder;
-        }
-
-        return filters;
-      }),
-      distinctUntilChanged()
-    );
-  }
-
-  protected initPresetFields$() {
-    if (
-      !this.options ||
-      !this.options.create ||
-      !this.options.create.presetFields ||
-      !this.context$
-    ) {
-      return;
-    }
-
-    this.presetFields$ = this.context$.pipe(
-      map((context) => {
-        const parentValues = this.initParentValues(context);
-
-        const staticValues =
-          this.options.create.presetFields.static || ({} as AttributeMap);
-        return {
-          ...parentValues,
-          ...staticValues,
-        };
-      }),
-      distinctUntilChanged()
-    );
-  }
-
-  protected initParentFilters(context, filters) {
-    const parentFilters =
-      this.options.filters.parentFilters || ({} as StringMap);
-    if (!context || !context.record || !parentFilters) {
-      return;
-    }
-
-    Object.keys(parentFilters).forEach((parentField) => {
-      const field = parentFilters[parentField];
-      const value = context.record.attributes[parentField] || "";
-
-      if (!value) {
-        return;
-      }
-
-      filters.filters[field] = {
-        field: parentFilters,
-        operator: "=",
-        values: [value],
-      };
-    });
-  }
-
-  protected initParentValues(context: ViewContext): AttributeMap {
-    const parentValues =
-      this.options.create.presetFields.parentValues || ({} as StringMap);
-    if (!context || !context.record || !parentValues) {
-      return;
-    }
-
-    const attributes = {} as AttributeMap;
-
-    Object.keys(parentValues).forEach((parentField) => {
-      const field = parentValues[parentField];
-      const value = context.record.attributes[parentField] || "";
-
-      if (!value) {
-        return;
-      }
-
-      attributes[field] = value;
-    });
-
-    return attributes;
   }
 }

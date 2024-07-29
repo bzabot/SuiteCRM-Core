@@ -29,7 +29,7 @@
 <div class="d-flex flex-row justify-content-between board mt-2">
   <div *ngFor="let column of columns" class="board-column">
     <h6 class="board-title">{{ column }}</h6>
-    <scrm-record-thread [config]="getConfig(column)"></scrm-record-thread>
+    <scrm-record-thread [config]="data[column]"></scrm-record-thread>
   </div>
 </div>
 

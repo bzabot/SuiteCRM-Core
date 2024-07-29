@@ -24,7 +24,7 @@
  * the words "Supercharged by SuiteCRM".
  */
 
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, Input, OnDestroy, OnInit } from "@angular/core";
 import {
   AttributeMap,
   deepClone,
@@ -57,9 +57,26 @@ export class BoardComponent
   extends BaseWidgetComponent
   implements OnInit, OnDestroy
 {
-  columns: string[] = [];
+  recordThreadConfig: RecordThreadConfig;
 
-  options: {
+  filters$: Observable<SearchCriteria>;
+  presetFields$: Observable<AttributeMap>;
+  protected subs: Subscription[] = [];
+  data: { [key: string]: RecordThreadConfig } = {};
+
+  constructor(
+    protected language: LanguageStore,
+    protected sytemConfig: SystemConfigStore
+  ) {
+    super();
+  }
+
+  // drop(event: CdkDragDrop<string[]>) {
+  //   moveItemInArray(this.movies, event.previousIndex, event.currentIndex);
+  // }
+
+  @Input() columns: string[];
+  @Input() options: {
     module: string;
     class?: string;
     maxListHeight?: number;
@@ -86,427 +103,7 @@ export class BoardComponent
       sortOrder?: string;
     };
   };
-  recordThreadConfig: RecordThreadConfig;
-
-  filters$: Observable<SearchCriteria>;
-  presetFields$: Observable<AttributeMap>;
-  protected subs: Subscription[] = [];
-
-  constructor(
-    protected language: LanguageStore,
-    protected sytemConfig: SystemConfigStore
-  ) {
-    super();
-  }
-
-  // drop(event: CdkDragDrop<string[]>) {
-  //   moveItemInArray(this.movies, event.previousIndex, event.currentIndex);
-  // }
-
   ngOnInit(): void {
-    this.columns = [
-      "Not Started",
-      "In Progress",
-      "Completed",
-      "Pending Input",
-      "Deferred",
-    ];
-
-    this.options = {
-      module: "tasks",
-      class: "",
-      maxListHeight: 0,
-      filters: {
-        static: {
-          parent_type: {
-            field: "parent_type",
-            operator: "=",
-            values: ["Cases"],
-          },
-        },
-        orderBy: "date_entered",
-        sortOrder: "DESC",
-      },
-      item: {
-        itemClass: "case-tasks-item pt-1 pb-1 w-100",
-        collapsible: true,
-        layout: {
-          header: {
-            rows: [],
-          },
-          body: {
-            class: "border bg-transparent",
-            rows: [
-              /*{
-                align: "end",
-                justify: "between",
-                cols: [
-                  {
-                    field: {
-                      name: "author",
-                      label: "",
-                    },
-                    labelDisplay: "none",
-                    hideIfEmpty: true,
-                    class: "font-weight-bold item-title",
-                  },
-                  {
-                    field: {
-                      name: "internal",
-                      label: "",
-                    },
-                    labelDisplay: "inline",
-                    labelClass: "m-0",
-                    display: "none",
-                    hideIfEmpty: true,
-                    class: "small ml-auto font-weight-light",
-                  },
-                ],
-              },*/
-              {
-                align: "start",
-                justify: "between",
-                class: "flex-grow-1 item-content p-1",
-                cols: [
-                  {
-                    field: {
-                      name: "name",
-                      label: "LBL_SUBJECT",
-                      link: true,
-                      fieldDefinition: {
-                        name: "name",
-                        vname: "LBL_SUBJECT",
-                        dbType: "varchar",
-                        type: "name",
-                        len: "50",
-                        unified_search: true,
-                        full_text_search: {
-                          boost: 3,
-                        },
-                        importable: "required",
-                        required: true,
-                      },
-                      type: "name",
-                    },
-
-                    labelClass: "font-weight-light small mb-0",
-                    labelDisplay: "none",
-                  },
-                  {
-                    /*field: {
-                      name: "date_due",
-                      label: "LBL_DUE_DATE",
-                      fieldDefinition: {
-                        name: "date_due",
-                        vname: "LBL_DUE_DATE",
-                        type: "datetime",
-                        dbType: "datetime",
-                        group: "date_due",
-                        studio: {
-                          required: true,
-                          no_duplicate: true,
-                        },
-                        enable_range_search: true,
-                        options: "date_range_search_dom",
-                        required: false,
-                        legacyGroup: true,
-                        groupFields: {
-                          date_due_flag: {
-                            name: "date_due_flag",
-                            vname: "LBL_DATE_DUE_FLAG",
-                            type: "bool",
-                            group: "date_due",
-                            studio: false,
-                            required: false,
-                          },
-                          date_due: {
-                            name: "date_due",
-                            vname: "LBL_DUE_DATE",
-                            type: "datetimecombo",
-                            dbType: "datetime",
-                            group: "date_due",
-                            studio: {
-                              required: true,
-                              no_duplicate: true,
-                            },
-                            enable_range_search: true,
-                            options: "date_range_search_dom",
-                            required: false,
-                          },
-                        },
-                      },
-                      type: "datetime",
-                    },*/
-                    labelClass: "font-weight-light small mb-0",
-                    labelDisplay: "none",
-                  },
-                  {
-                    actionSlot: true,
-                    class: "w-25",
-                  },
-                ],
-              },
-              {
-                align: "start",
-                justify: "between",
-                class: "flex-grow-1 item-content p-1",
-                cols: [
-                  {
-                    field: {
-                      name: "date_due",
-                      label: "LBL_DUE_DATE",
-                      fieldDefinition: {
-                        name: "date_due",
-                        vname: "LBL_DUE_DATE",
-                        type: "datetime",
-                        dbType: "datetime",
-                        group: "date_due",
-                        studio: {
-                          required: true,
-                          no_duplicate: true,
-                        },
-                        enable_range_search: true,
-                        options: "date_range_search_dom",
-                        required: false,
-                        legacyGroup: true,
-                        groupFields: {
-                          date_due_flag: {
-                            name: "date_due_flag",
-                            vname: "LBL_DATE_DUE_FLAG",
-                            type: "bool",
-                            group: "date_due",
-                            studio: false,
-                            required: false,
-                          },
-                          date_due: {
-                            name: "date_due",
-                            vname: "LBL_DUE_DATE",
-                            type: "datetimecombo",
-                            dbType: "datetime",
-                            group: "date_due",
-                            studio: {
-                              required: true,
-                              no_duplicate: true,
-                            },
-                            enable_range_search: true,
-                            options: "date_range_search_dom",
-                            required: false,
-                          },
-                        },
-                      },
-                      type: "datetime",
-                    },
-                    labelClass: "font-weight-light small mb-0",
-                    labelDisplay: "top",
-                    class: "font-weight-light small my-0 ",
-                  },
-                  {
-                    field: {
-                      name: "assigned_user_name",
-                      label: "LBL_ASSIGNED_USER_NAME",
-                      link: false,
-                      fieldDefinition: {
-                        name: "assigned_user_name",
-                        vname: "LBL_ASSIGNED_USER_NAME",
-                        rname: "user_name",
-                        source: "non-db",
-                        dbType: "varchar",
-                        type: "relate",
-                        len: "100",
-                        unified_search: true,
-                        full_text_search: {
-                          boost: 3,
-                        },
-                        importable: "required",
-                      },
-                      type: "relate",
-                    },
-                    labelClass: "font-weight-light small mb-0",
-                    labelDisplay: "none",
-                    class: "align-self-end",
-                  },
-                  // {
-                  //   actionSlot: false,
-                  //   class: "w-25",
-                  // },
-                ],
-              },
-              /*{
-                align: "start",
-                justify: "between",
-                class: "flex-grow-1 item-content p-1",
-                cols: [
-                  {
-                    field: {
-                      name: "priority",
-                      label: "LBL_PRIORITY",
-                      link: false,
-                      fieldDefinition: {
-                        name: "priority",
-                        vname: "LBL_PRIORITY",
-                        options: "task_priority_dom",
-                        type: "enum",
-                        len: "100",
-                        unified_search: true,
-                        full_text_search: {
-                          boost: 3,
-                        },
-                        importable: "required",
-                        required: true,
-                      },
-                      type: "enum",
-                    },
-
-                    labelClass: "font-weight-light small mb-0",
-                    labelDisplay: "none",
-                  },
-                  {
-                    field: {
-                      name: "date_due",
-                      label: "LBL_DUE_DATE",
-                      fieldDefinition: {
-                        name: "date_due",
-                        vname: "LBL_DUE_DATE",
-                        type: "datetime",
-                        dbType: "datetime",
-                        group: "date_due",
-                        studio: {
-                          required: true,
-                          no_duplicate: true,
-                        },
-                        enable_range_search: true,
-                        options: "date_range_search_dom",
-                        required: false,
-                        legacyGroup: true,
-                        groupFields: {
-                          date_due_flag: {
-                            name: "date_due_flag",
-                            vname: "LBL_DATE_DUE_FLAG",
-                            type: "bool",
-                            group: "date_due",
-                            studio: false,
-                            required: false,
-                          },
-                          date_due: {
-                            name: "date_due",
-                            vname: "LBL_DUE_DATE",
-                            type: "datetimecombo",
-                            dbType: "datetime",
-                            group: "date_due",
-                            studio: {
-                              required: true,
-                              no_duplicate: true,
-                            },
-                            enable_range_search: true,
-                            options: "date_range_search_dom",
-                            required: false,
-                          },
-                        },
-                      },
-                      type: "datetime",
-                    },
-                    labelClass: "font-weight-light small mb-0",
-                    labelDisplay: "top",
-                    class: "font-weight-light small my-0 ",
-                  },
-                ],
-              },*/
-            ],
-          },
-          actions: [
-            {
-              key: "edit",
-              icon: "pencil",
-              titleKey: "LBL_EDIT",
-              klass: [
-                "btn btn-outline-light fill-primary fill-hover-main  btn-xs p-0",
-              ],
-              modes: ["detail"],
-              acl: [],
-            },
-            {
-              key: "cancel",
-              icon: "cross",
-              titleKey: "LBL_CANCEL",
-              klass: [
-                "btn btn-outline-light fill-primary fill-hover-main  btn-xs p-0",
-              ],
-              modes: ["edit"],
-              acl: [],
-            },
-            {
-              key: "save",
-              icon: "tick",
-              titleKey: "LBL_SAVE_BUTTON_LABEL",
-              klass: [
-                "btn btn-outline-light fill-primary fill-hover-main btn-xs p-0",
-              ],
-              modes: ["edit"],
-              acl: [],
-            },
-            {
-              key: "delete",
-              icon: "minimise",
-              titleKey: "LBL_DELETE",
-              asyncProcess: true,
-              params: {
-                displayConfirmation: true,
-                confirmationLabel: "NTC_DELETE_CONFIRMATION",
-              },
-              // klass: [,],
-              // modes: [],
-              klass: [
-                "btn btn-outline-light fill-primary fill-hover-main  btn-xs p-0",
-              ],
-              modes: ["detail"],
-              acl: [],
-            },
-          ],
-        },
-      },
-      create: {},
-      //   create: {
-      //     layout: {
-      //       header: {
-      //         rows: [],
-      //       },
-      //       body: {
-      //         rows: [
-      //           {
-      //             justify: "start",
-      //             class: "flex-grow-1",
-      //             cols: [
-      //               {
-      //                 field: {
-      //                   name: "name",
-      //                   label: "LBL_SUBJECT",
-      //                   fieldDefinition: {
-      //                     name: "name",
-      //                     vname: "LBL_SUBJECT",
-      //                     dbType: "varchar",
-      //                     type: "name",
-      //                     len: "50",
-      //                     unified_search: true,
-      //                     full_text_search: {
-      //                       boost: 3,
-      //                     },
-      //                     importable: "required",
-      //                     required: true,
-      //                   },
-      //                   type: "name",
-      //                 },
-      //                 labelDisplay: "top",
-      //                 labelClass: "mb-0",
-      //                 class: "flex-grow-1",
-      //               },
-      //             ],
-      //           },
-      //         ],
-      //       },
-      //     },
-      //   },
-    };
-
     if (this.context$ && this.context$.subscribe()) {
       this.subs.push(
         this.context$.subscribe((context: ViewContext) => {
@@ -515,23 +112,25 @@ export class BoardComponent
       );
     }
 
-    // this.recordThreadConfig = this.getConfig();
+    this.columns.forEach((column) => {
+      this.data[column] = this.getConfig(column);
+    });
   }
 
   ngOnDestroy(): void {
     this.subs.forEach((sub) => sub.unsubscribe());
   }
 
-  getHeaderLabel(): string {
-    return this.getLabel(this.config.labelKey) || "";
-  }
+  // getHeaderLabel(): string {
+  //   return this.getLabel(this.config.labelKey) || "";
+  // }
 
-  getLabel(key: string): string {
-    const context = this.context || ({} as ViewContext);
-    const module = context.module || "";
+  // getLabel(key: string): string {
+  //   const context = this.context || ({} as ViewContext);
+  //   const module = context.module || "";
 
-    return this.language.getFieldLabel(key, module);
-  }
+  //   return this.language.getFieldLabel(key, module);
+  // }
 
   getConfig(column: string): RecordThreadConfig {
     const columnOptions = deepClone(this.options);

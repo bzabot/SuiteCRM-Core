@@ -24,42 +24,44 @@
  * the words "Supercharged by SuiteCRM".
  */
 
-import {Injectable} from '@angular/core';
-import {combineLatestWith} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {MetadataStore, RecordViewMetadata} from '../../../store/metadata/metadata.store.service';
-import {RecordViewStore} from '../store/record-view/record-view.store';
+import { Injectable } from "@angular/core";
+import { combineLatestWith, of } from "rxjs";
+import { map } from "rxjs/operators";
+import {
+  MetadataStore,
+  RecordViewMetadata,
+} from "../../../store/metadata/metadata.store.service";
+import { RecordViewStore } from "../store/record-view/record-view.store";
 
 @Injectable()
 export class BottomWidgetAdapter {
+  config$ = this.metadata.recordViewMetadata$.pipe(
+    combineLatestWith(of(true)),
 
-    config$ = this.metadata.recordViewMetadata$.pipe(
-        combineLatestWith(this.store.widgets$),
-        map(([metadata, show]: [RecordViewMetadata, boolean]) => {
+    map(([metadata, show]: [RecordViewMetadata, boolean]) => {
+      show = !!metadata?.bottomWidgets?.length;
 
-            if (metadata.bottomWidgets && metadata.bottomWidgets.length) {
-                metadata.bottomWidgets.forEach(widget => {
-                    if (widget && widget.refreshOn === 'data-update') {
-                        widget.reload$ = this.store.record$.pipe(map(() => true));
-                    }
+      if (metadata.bottomWidgets && metadata.bottomWidgets.length) {
+        metadata.bottomWidgets.forEach((widget) => {
+          if (widget && widget.refreshOn === "data-update") {
+            widget.reload$ = this.store.record$.pipe(map(() => true));
+          }
 
-                    if (widget) {
-                        widget.subpanelReload$ = this.store.subpanelReload$;
-                    }
-                });
-            }
+          if (widget) {
+            widget.subpanelReload$ = this.store.subpanelReload$;
+          }
+        });
+      }
 
-            return {
-                widgets: metadata.bottomWidgets || [],
-                show
-            };
-        })
-    );
+      return {
+        widgets: metadata.bottomWidgets || [],
+        show,
+      };
+    })
+  );
 
-    constructor(
-        protected store: RecordViewStore,
-        protected metadata: MetadataStore
-    ) {
-    }
-
+  constructor(
+    protected store: RecordViewStore,
+    protected metadata: MetadataStore
+  ) {}
 }

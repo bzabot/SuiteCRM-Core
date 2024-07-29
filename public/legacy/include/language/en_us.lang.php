@@ -538,6 +538,13 @@ $app_list_strings = array(
         'AOS_Products' => 'Product',
 
     ),
+    'parent_type_display_section_field' => array(
+        
+        'Tasks_status' => 'Status',
+        'Opportunities_sales_stage' => 'Sales Stage',
+
+
+    ),
     'parent_line_items' => array(
         'AOS_Quotes' => 'Quotes',
         'AOS_Invoices' => 'Invoices',

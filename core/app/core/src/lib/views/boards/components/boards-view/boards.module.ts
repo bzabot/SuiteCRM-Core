@@ -29,10 +29,16 @@ import { CommonModule } from "@angular/common";
 import { BoardsComponent } from "./boards.component";
 import { BoardModule } from "../../../../containers/board/components/board/board.module";
 import { SidebarComponent } from "../../../../components/sidebar/sidebar.component";
+import { BoardSidebarWidgetModule } from "../../../../containers/sidebar-widget/components/board-sidebar-widget/board-sidebar-widget.module";
 
 @NgModule({
   declarations: [BoardsComponent],
   exports: [BoardsComponent],
-  imports: [CommonModule, BoardModule, SidebarComponent],
+  imports: [
+    CommonModule,
+    BoardModule,
+    SidebarComponent,
+    BoardSidebarWidgetModule,
+  ],
 })
 export class BoardsModule {}

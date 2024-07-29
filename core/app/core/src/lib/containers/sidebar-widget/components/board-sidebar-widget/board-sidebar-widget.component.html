@@ -26,24 +26,18 @@
 */
 -->
 <scrm-widget-panel [mode]="panelMode" [title]="getHeaderLabel()">
+  <!--  -->
   <div class="record-thread-sidebar-widget" widget-body>
-    <ng-container *ngIf="!options">
+    <ng-container *ngIf="!options()">
       <div class="p-3 widget-message">
         <scrm-label labelKey="LBL_BAD_CONFIG"></scrm-label>
       </div>
     </ng-container>
 
-    <ng-container *ngIf="options">
+    <ng-container *ngIf="options() && moduleType">
       <!-- <scrm-record-thread [config]="recordThreadConfig"></scrm-record-thread> -->
 
-      <scrm-board [config]="boardConfig"></scrm-board>
+      <scrm-board [columns]="columns" [options]="options()"></scrm-board>
     </ng-container>
   </div>
 </scrm-widget-panel>
-
-<!-- 
-- Classe da div linha 29
-- scrm-record-thred -> scrm-board, porém no proprio board.component é declarado como scrm-record-thread
-- usar o board-sidebar-widget em algum lugar no código?
-- Em qual local mudar o options? no local que importa o board-sidebar-widget?
--->
